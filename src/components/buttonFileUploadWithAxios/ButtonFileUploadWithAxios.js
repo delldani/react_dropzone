@@ -30,7 +30,7 @@ const ButtonFileUploadWithAxios = props => {
   };
 
   const addSelectedFilesToFieldData = selectedFiles => {
-    feedFieldDatasWithDefault();
+    feedFieldDatasWithDefault(); //feltölti a fieldDatas-t a props-ban kapott vagy alapértelmezett adatokkal
     for (const file of selectedFiles)
       fieldDatas.push({ [selectedFilesFieldName]: file });
   };
@@ -61,7 +61,7 @@ const ButtonFileUploadWithAxios = props => {
       .post(url, makeFormData(), config)
       .then(response => {
         if (response.status === 200) {
-          feedFieldDatasWithDefault();
+          feedFieldDatasWithDefault(); //visszaállítja az eredeti adatokat, hogy lehessen újra kijelölni fájlokat
           console.log("mentés ok !");
         } else console.log("Szerver oldali hiba !");
       })

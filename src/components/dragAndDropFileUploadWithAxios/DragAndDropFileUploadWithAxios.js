@@ -5,7 +5,7 @@ import axios from "axios";
 const DragAndDropFileUploadWithAxios = props => {
   const {
     url,
-    fieldDatas,
+    defaultStyle,
     selectedFilesFieldName,
     labelText,
     progressFunction,
@@ -13,15 +13,23 @@ const DragAndDropFileUploadWithAxios = props => {
     getSelectedFilesAfterFilter,
     filterFunction
   } = props;
+
+  
+  let fieldDatas;
+  const feedFieldDatasWithDefault = () => (fieldDatas = [...props.fieldDatas]);
+
   const addSelectedFilesToFieldData = files => {
+    feedFieldDatasWithDefault();
     for (const file of files)
       fieldDatas.push({ [selectedFilesFieldName]: file });
   };
 
   const onDrop = acceptedFiles => {
-    addSelectedFilesToFieldData(acceptedFiles);
+    getSelectedFilesBeforeFilter(acceptedFiles);
+    const filteredFiles = filterFiles(acceptedFiles);
+    getSelectedFilesAfterFilter(filteredFiles);
+    addSelectedFilesToFieldData(filteredFiles);
     sendFiles();
-    console.log(acceptedFiles);
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
@@ -52,10 +60,17 @@ const DragAndDropFileUploadWithAxios = props => {
   async function sendFiles() {
     axios
       .post(url, makeFormData(), config)
-      .then(response => console.log(response.data));
+      .then(response => {
+        if (response.status === 200) {
+          feedFieldDatasWithDefault(); //visszaállítja az eredeti adatokat, hogy lehessen újra kijelölni fájlokat
+          console.log("mentés ok !");
+        } else console.log("Szerver oldali hiba !");
+      })
+      .catch(err => console.log(err));
   }
+ 
   return (
-    <div {...getRootProps()}>
+    <div {...getRootProps()}  style={defaultStyle}>
       <input {...getInputProps()} />
       {isDragActive ? <p>Drop the files here ...</p> : <p>{labelText}</p>}
     </div>
@@ -64,6 +79,7 @@ const DragAndDropFileUploadWithAxios = props => {
 
 DragAndDropFileUploadWithAxios.defaultProps = {
   url: "http://localhost:3000/pictures",
+  defaultStyle:{padding:'50px'},
   multiple: true,
   fieldDatas: [{ text: "valami meta-adat.." }],
   selectedFilesFieldName: "avatar",
