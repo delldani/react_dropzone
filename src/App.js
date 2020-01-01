@@ -11,6 +11,7 @@ function App() {
     <div>
       <DragAndDropFileUploadWithAxios/>
       <ButtonFileUploadWithAxios />
+      <input type='file' multiple onChange={(e)=>console.log(e.target.files)}/>
     </div>
   );
 }
