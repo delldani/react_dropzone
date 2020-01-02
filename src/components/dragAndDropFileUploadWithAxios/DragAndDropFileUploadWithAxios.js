@@ -11,7 +11,9 @@ const DragAndDropFileUploadWithAxios = props => {
     progressFunction,
     getSelectedFilesBeforeFilter,
     getSelectedFilesAfterFilter,
-    filterFunction
+    filterFunction,
+    allowSending,
+    sendFiles
   } = props;
 
   let fieldDatas;
@@ -28,7 +30,7 @@ const DragAndDropFileUploadWithAxios = props => {
     const filteredFiles = filterFiles(acceptedFiles);
     getSelectedFilesAfterFilter(filteredFiles);
     addSelectedFilesToFieldData(filteredFiles);
-    sendFiles();
+    allowSending && sendFiles(url, makeFormData(), config);
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
@@ -56,18 +58,6 @@ const DragAndDropFileUploadWithAxios = props => {
 
   const filterFiles = files => Object.values(files).filter(filterFunction);
 
-  async function sendFiles() {
-    axios
-      .post(url, makeFormData(), config)
-      .then(response => {
-        if (response.status === 200) {
-          feedFieldDatasWithDefault(); //visszaállítja az eredeti adatokat, hogy lehessen újra kijelölni fájlokat
-          console.log("mentés ok !");
-        } else console.log("Szerver oldali hiba !");
-      })
-      .catch(err => console.log(err));
-  }
-
   return (
     <div {...getRootProps()} style={defaultStyle}>
       <input {...getInputProps()} />
@@ -94,7 +84,18 @@ DragAndDropFileUploadWithAxios.defaultProps = {
     console.log("kiválasztott file-ok szűrés után : ");
     console.log(selectedFiles);
   },
-  filterFunction: selectedFile => true
+  filterFunction: selectedFile => true,
+  allowSending: true,
+  sendFiles: function(url, body, axiosConfigforProgressBar) {
+    axios
+      .post(url, body, axiosConfigforProgressBar)
+      .then(response => {
+        if (response.status === 200) {
+          console.log("mentés ok !");
+        } else console.log("Szerver oldali hiba !");
+      })
+      .catch(err => console.log(err));
+  }
 };
 
 export default DragAndDropFileUploadWithAxios;
