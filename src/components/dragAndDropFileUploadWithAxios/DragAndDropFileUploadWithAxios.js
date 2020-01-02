@@ -14,7 +14,6 @@ const DragAndDropFileUploadWithAxios = props => {
     filterFunction
   } = props;
 
-  
   let fieldDatas;
   const feedFieldDatasWithDefault = () => (fieldDatas = [...props.fieldDatas]);
 
@@ -68,9 +67,9 @@ const DragAndDropFileUploadWithAxios = props => {
       })
       .catch(err => console.log(err));
   }
- 
+
   return (
-    <div {...getRootProps()}  style={defaultStyle}>
+    <div {...getRootProps()} style={defaultStyle}>
       <input {...getInputProps()} />
       {isDragActive ? <p>Drop the files here ...</p> : <p>{labelText}</p>}
     </div>
@@ -79,7 +78,7 @@ const DragAndDropFileUploadWithAxios = props => {
 
 DragAndDropFileUploadWithAxios.defaultProps = {
   url: "http://localhost:3000/pictures",
-  defaultStyle:{padding:'50px'},
+  defaultStyle: { padding: "50px" },
   multiple: true,
   fieldDatas: [{ text: "valami meta-adat.." }],
   selectedFilesFieldName: "avatar",

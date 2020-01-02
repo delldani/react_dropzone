@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import axios from "axios";
 
 const ButtonFileUploadWithAxios = props => {
@@ -11,23 +11,20 @@ const ButtonFileUploadWithAxios = props => {
     progressFunction,
     getSelectedFilesBeforeFilter,
     getSelectedFilesAfterFilter,
-    filterFunction
+    filterFunction,
+    sendToApi,
+    allowSending
   } = props;
 
   let fieldDatas;
-  const feedFieldDatasWithDefault = () => (fieldDatas = [...props.fieldDatas]);
 
-  const fileInput = React.createRef();
-
-  //axios rendelkezik ezekkel az eventekkel, amik mutatják hogy, hogy áll a feltöltés
-  const config = {
-    onUploadProgress: progressEvent => {
-      if (progressEvent.lengthComputable)
-        progressFunction(
-          Math.round((progressEvent.loaded * 100) / progressEvent.total)
-        );
-    }
+  const feedFieldDatasWithDefault = () => {
+    fieldDatas = [...props.fieldDatas];
   };
+
+  useEffect(() => {
+    feedFieldDatasWithDefault();
+  });
 
   const addSelectedFilesToFieldData = selectedFiles => {
     feedFieldDatasWithDefault(); //feltölti a fieldDatas-t a props-ban kapott vagy alapértelmezett adatokkal
@@ -48,25 +45,30 @@ const ButtonFileUploadWithAxios = props => {
 
   const filterFiles = files => Object.values(files).filter(filterFunction);
 
-  const onChange = () => {
-    getSelectedFilesBeforeFilter(fileInput.current.files);
-    const filteredFiles = filterFiles(fileInput.current.files);
+  const onChange = e => {
+    getSelectedFilesBeforeFilter(e.target.files);
+    const filteredFiles = filterFiles(e.target.files);
     getSelectedFilesAfterFilter(filteredFiles);
     addSelectedFilesToFieldData(filteredFiles);
+    e.target.value = ""; // https://github.com/ngokevin/react-file-reader-input/issues/11 alapesetben ha kijelölsz egy file-t, utána becsukod az ablakot, majd kinyitod újra és kijelölöd ugyanazt
+    //akkor nem hívódik meg az onChange() (mivel nem történt változás), ezzel a sorral ez megoldható
   };
 
-  async function sendFiles(event) {
-    event.preventDefault();
-    axios
-      .post(url, makeFormData(), config)
-      .then(response => {
-        if (response.status === 200) {
-          feedFieldDatasWithDefault(); //visszaállítja az eredeti adatokat, hogy lehessen újra kijelölni fájlokat
-          console.log("mentés ok !");
-        } else console.log("Szerver oldali hiba !");
-      })
-      .catch(err => console.log(err));
-  }
+  //axios rendelkezik ezekkel az eventekkel, amik mutatják hogy, hogy áll a feltöltés
+  const config = {
+    onUploadProgress: progressEvent => {
+      if (progressEvent.lengthComputable)
+        progressFunction(
+          Math.round((progressEvent.loaded * 100) / progressEvent.total)
+        );
+    }
+  };
+
+  const sendFiles = e => {
+    e.preventDefault();
+    allowSending && sendToApi(url, makeFormData(), config);
+  };
+
   return (
     <form onSubmit={sendFiles}>
       <label>
@@ -74,7 +76,6 @@ const ButtonFileUploadWithAxios = props => {
         <input
           type="file"
           multiple={multiple}
-          ref={fileInput}
           style={{ display: "none" }}
           onChange={onChange}
         />
@@ -102,7 +103,18 @@ ButtonFileUploadWithAxios.defaultProps = {
     console.log("kiválasztott file-ok szűrés után : ");
     console.log(selectedFiles);
   },
-  filterFunction: selectedFile => true
+  sendToApi: function(url, body, axiosConfigforProgressBar) {
+    axios
+      .post(url, body, axiosConfigforProgressBar)
+      .then(response => {
+        if (response.status === 200) {
+          console.log("mentés ok !");
+        } else console.log("Szerver oldali hiba !");
+      })
+      .catch(err => console.log(err));
+  },
+  filterFunction: selectedFile => true,
+  allowSending: true
 };
 
 export default ButtonFileUploadWithAxios;
