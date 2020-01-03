@@ -67,6 +67,7 @@ const ButtonFileUploadWithAxios = props => {
   const sendFiles = e => {
     e.preventDefault();
     allowSending && sendToApi(url, makeFormData(), config);
+    feedFieldDatasWithDefault(); // küldés után üríti a fildDatas-t, visszaállítja adefault értékeket..
   };
 
   return (
