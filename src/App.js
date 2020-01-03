@@ -1,9 +1,6 @@
 import React from "react";
 
-import {
-  DragAndDropFileUploadWithAxios,
-  ButtonFileUploadWithAxios
-} from "./components";
+import { DragAndDropFileUploadWithAxios } from "./components";
 
 function App() {
   return (
